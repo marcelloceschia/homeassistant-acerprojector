@@ -17,8 +17,6 @@ END_OF_RESPONSE = b"\r\n"
 RESPONSE_TIMEOUT = 5.0
 CONNECTION_LOCK_TIMEOUT = 5.0
 
-RESPONSE_RE = re.compile(r"\r?\n?([^\r\n]+)\r?\n?")
-
 
 class AcerProjectorError(Exception):
     """Base error."""
@@ -134,10 +132,13 @@ class AcerTcpConnection(AcerConnection):
     async def reset(self) -> None:
         if self._reader:
             try:
-                while True:
-                    chunk = await asyncio.wait_for(self._reader.read(1024), timeout=0.2)
-                    if not chunk:
-                        break
+                empty_count = 0
+                while empty_count < 2:
+                    chunk = await asyncio.wait_for(self._reader.read(1024), timeout=0.15)
+                    if chunk:
+                        empty_count = 0
+                    else:
+                        empty_count += 1
             except asyncio.TimeoutError:
                 pass
 
@@ -227,6 +228,7 @@ class AcerProjector:
         self.video_source: str | None = None
         self.video_sources: dict[str, str] = {}
         self.video_source_names: dict[str, str] = {}
+        self.video_source_values: dict[str, str] = {}
         self.commands: dict[str, str] = {}
         self.supported_features: list[str] = []
 
@@ -260,6 +262,23 @@ class AcerProjector:
         if os.path.exists(config_path):
             with open(config_path, encoding="utf-8") as f:
                 return json.load(f)
+        # Search all configs for a matching model alias
+        configs_dir = os.path.join(os.path.dirname(__file__), "configs")
+        for filename in os.listdir(configs_dir):
+            if not filename.endswith(".json"):
+                continue
+            try:
+                with open(os.path.join(configs_dir, filename), encoding="utf-8") as f:
+                    cfg = json.load(f)
+                aliases = cfg.get("model_aliases", {})
+                if model in aliases:
+                    target = aliases[model]
+                    target_path = os.path.join(configs_dir, f"{target}.json")
+                    if os.path.exists(target_path):
+                        with open(target_path, encoding="utf-8") as f:
+                            return json.load(f)
+            except Exception:  # pylint: disable=broad-except
+                continue
         # Fallback to default
         default_path = os.path.join(os.path.dirname(__file__), "configs", "default.json")
         with open(default_path, encoding="utf-8") as f:
@@ -269,6 +288,7 @@ class AcerProjector:
         self.model_config = config
         self.video_sources = config.get("video_sources", {})
         self.video_source_names = config.get("video_source_names", self.video_sources)
+        self.video_source_values = config.get("video_source_values", {})
         self.commands = config.get("commands", {})
         self.supported_features = config.get("supported_features", [])
         self.poweron_time = config.get("poweron_time", 25)
@@ -278,11 +298,29 @@ class AcerProjector:
         return feature in self.supported_features
 
     def supports_command(self, command_name: str) -> bool:
+        if command_name == "set_video_source":
+            return bool(self.video_sources)
         return command_name in self.commands
+
+    def _map_video_source(self, raw_value: str) -> str | None:
+        """Map raw source response to configured source key."""
+        raw_value = raw_value.strip().lower()
+        if raw_value in self.video_source_values:
+            return self.video_source_values[raw_value]
+        if raw_value in self.video_sources:
+            return raw_value
+        for key, name in self.video_source_names.items():
+            if raw_value == name.lower().replace(" ", ""):
+                return key
+        return raw_value if raw_value else None
 
     async def connect(self) -> bool:
         if not await self.connection.open():
             return False
+
+        # Load minimal/default config first so query_model is available
+        if not self.model_config:
+            self._apply_config(self._load_config("default"))
 
         # Try to detect model if not set
         if not self.model:
@@ -300,6 +338,11 @@ class AcerProjector:
 
         # Update power state
         await self.update_power()
+
+        # Update additional state if powered on
+        if self.power_status == 2:
+            await self.update_video_source()
+            await self.update_lamp_hours()
 
         self._init = False
         return True
@@ -327,16 +370,31 @@ class AcerProjector:
         await self.connection.write(raw_command.encode("ascii"))
 
     async def _read_response(self) -> str:
+        """Read a complete response from the projector.
+
+        Acer responses via USR-TCP232-410S are typically:
+        *000\rAnswer\r
+        """
         response = b""
         last_data = asyncio.get_event_loop().time()
+        status_seen = False
         while True:
             chunk = await self.connection.read(100)
             if chunk:
                 response += chunk
                 last_data = asyncio.get_event_loop().time()
-                if b"\r" in chunk or b"\n" in chunk:
+                if b"*" in chunk:
+                    status_seen = True
+                if status_seen and b"\r" in chunk:
+                    await asyncio.sleep(0.05)
+                    try:
+                        extra = await asyncio.wait_for(self.connection.read(100), timeout=0.1)
+                        if extra:
+                            response += extra
+                    except asyncio.TimeoutError:
+                        pass
                     break
-            if (asyncio.get_event_loop().time() - last_data) > 0.5:
+            if (asyncio.get_event_loop().time() - last_data) > 1.0:
                 break
 
         decoded = response.decode("ascii", errors="ignore").strip(WHITESPACE)
@@ -346,15 +404,17 @@ class AcerProjector:
     async def _read_response_formatted(self) -> str:
         """Read and format Acer response.
 
-        Acer responses are often wrapped like:
-        ***\r\nLamp 1\r\n***\r\n
-        or just:\r\nLamp 1\r\n
+        Acer responses via USR-TCP232-410S come as:
+        *000\rLamp 0\r
+        or:
+        *001\r
+
+        Some projectors also wrap answers in *** markers.
         """
         raw = await self._read_response()
-        # Remove *** markers
-        cleaned = re.sub(r"\*+", "", raw)
+        cleaned = re.sub(r"^\*\d{3}\r\n?", "", raw)
+        cleaned = re.sub(r"\*+", "", cleaned)
         cleaned = cleaned.strip(WHITESPACE)
-        # Take the last non-empty line which usually contains the answer
         lines = [line.strip(WHITESPACE) for line in cleaned.splitlines() if line.strip(WHITESPACE)]
         if lines:
             return lines[-1]
@@ -379,21 +439,18 @@ class AcerProjector:
     ) -> str | None:
         cmd = self.commands.get(command_name)
         if not cmd:
-            _LOGGER.warning("Command %s not configured", command_name)
-            return None
-
-        if action:
-            # For video sources, use the mapped IR command
             if command_name == "set_video_source" and action in self.video_sources:
                 cmd = self.video_sources[action]
             else:
-                cmd = f"{cmd} {action}"
+                _LOGGER.warning("Command %s not configured", command_name)
+                return None
 
+        if action and command_name != "set_video_source":
+            cmd = f"{cmd} {action}"
         response = await self.send_raw_command(cmd)
         if raw_response:
             return response
 
-        # Parse common response patterns
         response = response.strip(WHITESPACE).lower()
 
         if command_name == "query_power":
@@ -404,20 +461,17 @@ class AcerProjector:
             return None
 
         if command_name == "query_source":
-            # Source responses vary: "Src HDMI1", "HDMI1", etc.
             if response.startswith("src "):
                 return response[4:].strip()
             return response
 
         if command_name in ("query_lamp_hours", "query_lamp2_hours"):
-            # Responses like "Lamp 1234" or just "1234"
             match = re.search(r"(\d+)", response)
             if match:
                 return match.group(1)
             return None
 
         if command_name == "query_model":
-            # Model responses can be like "Model H6546Ki" or just "H6546Ki"
             if response.startswith("model "):
                 return response[6:].strip()
             return response
@@ -447,7 +501,7 @@ class AcerProjector:
             return False
         source = await self.send_command("query_source")
         if source:
-            self.video_source = source.lower()
+            self.video_source = self._map_video_source(source)
         return True
 
     async def update_lamp_hours(self) -> bool:
