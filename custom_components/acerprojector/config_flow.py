@@ -46,7 +46,7 @@ from .projector import AcerProjectorSerial, AcerProjectorTcp
 
 _LOGGER = logging.getLogger(__name__)
 
-MODELS = ["H6546Ki", "default"]
+MODELS = ["H6546Ki", "H5382BD", "P6200S", "UL6200", "X1261", "default"]
 
 
 class AcerProjectorConfigFlow(ConfigFlow, domain=DOMAIN):
