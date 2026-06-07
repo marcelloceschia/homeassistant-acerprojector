@@ -234,6 +234,8 @@ class AcerProjector:
 
         self.lamp_hours: int | None = None
         self.lamp2_hours: int | None = None
+        self.volume: int | None = None
+        self.eco_mode: bool | None = None
         self.muted = False
         self.frozen = False
         self.hidden = False
@@ -515,6 +517,16 @@ class AcerProjector:
                 pass
         return True
 
+    async def update_eco_mode(self) -> bool:
+        if not self.supports_feature("eco_mode"):
+            return False
+        response = await self.send_command("query_eco_mode", raw_response=True)
+        if response is not None:
+            # ECO responses vary; treat "1"/"on"/"eco 1" as on
+            lowered = response.strip().lower()
+            self.eco_mode = lowered in ("1", "on", "eco 1", "eco on")
+        return True
+
     async def turn_on(self) -> bool:
         await self.update_power()
         if self.power_status == 2:
@@ -547,6 +559,33 @@ class AcerProjector:
             return True
         return False
 
+    async def set_volume_level(self, level: int) -> bool:
+        """Set volume by sending up/down steps relative to current level."""
+        if self.volume is None:
+            self.volume = 10  # assume mid-level if unknown
+        level = max(0, min(20, int(level)))
+        if level == self.volume:
+            return True
+        while self.volume < level:
+            if await self.send_command("volume_up") is not None:
+                self.volume += 1
+            else:
+                break
+        while self.volume > level:
+            if await self.send_command("volume_down") is not None:
+                self.volume -= 1
+            else:
+                break
+        return True
+
+    async def set_eco_mode(self, enabled: bool) -> bool:
+        """Toggle Eco mode."""
+        response = await self.send_command("eco_mode")
+        if response is not None:
+            self.eco_mode = enabled
+            return True
+        return False
+
     async def send_ir_command(self, command_name: str) -> bool:
         """Send an IR-style command like mute/freeze/hide."""
         response = await self.send_command(command_name)
@@ -559,8 +598,10 @@ class AcerProjector:
         if self.power_status == 2:
             await self.update_video_source()
             await self.update_lamp_hours()
+            await self.update_eco_mode()
         else:
             self.video_source = None
+            self.eco_mode = None
 
         return True
 
@@ -588,6 +629,11 @@ class AcerProjector:
                         if previous_data.get("lamp_hours") != self.lamp_hours:
                             self._notify_listeners("lamp_hours", self.lamp_hours)
                             previous_data["lamp_hours"] = self.lamp_hours
+
+                        await self.update_eco_mode()
+                        if previous_data.get("eco_mode") != self.eco_mode:
+                            self._notify_listeners("eco_mode", self.eco_mode)
+                            previous_data["eco_mode"] = self.eco_mode
 
                 await asyncio.sleep(self._interval or 10)
             except asyncio.CancelledError:

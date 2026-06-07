@@ -55,12 +55,20 @@
         "name": "Lampenstunden"
       }
     },
+    "number": {
+      "volume": {
+        "name": "Lautstärke"
+      }
+    },
     "select": {
       "video_source": {
         "name": "Eingangsquelle"
       }
     },
     "switch": {
+      "eco_mode": {
+        "name": "Eco-Modus"
+      },
       "mute": {
         "name": "Stumm"
       },

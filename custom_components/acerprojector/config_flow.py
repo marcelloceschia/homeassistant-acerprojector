@@ -1,5 +1,6 @@
 """Config flow for the Acer Projector integration."""
 
+import json
 import logging
 import os
 from pathlib import Path
@@ -252,17 +253,7 @@ class AcerProjectorConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class AcerProjectorOptionsFlowHandler(OptionsFlow):
-    _OPTIONS_SCHEMA = vol.Schema(
-        {
-            vol.Optional(CONF_INTERVAL, default=CONF_DEFAULT_INTERVAL): NumberSelector(
-                NumberSelectorConfig(
-                    min=5,
-                    mode=NumberSelectorMode.BOX,
-                    unit_of_measurement=UnitOfTime.SECONDS,
-                )
-            ),
-        }
-    )
+    CONF_VISIBLE_SOURCES = "visible_video_sources"
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -270,17 +261,66 @@ class AcerProjectorOptionsFlowHandler(OptionsFlow):
         """Manage the options."""
         errors: dict[str, str] = {}
 
+        # Load model config to get available video sources
+        model = self.config_entry.data.get(CONF_MODEL, "default")
+        config_path = os.path.join(
+            os.path.dirname(__file__),
+            "configs",
+            f"{self._safe_model_name(model)}.json",
+        )
+        if not os.path.exists(config_path):
+            config_path = os.path.join(os.path.dirname(__file__), "configs", "default.json")
+
+        available_sources = {}
+        try:
+            with open(config_path, encoding="utf-8") as f:
+                cfg = json.load(f)
+            available_sources = cfg.get("video_source_names", cfg.get("video_sources", {}))
+        except Exception:  # pylint: disable=broad-except
+            pass
+
+        default_visible = list(available_sources.keys())
+        current_visible = self.config_entry.options.get(self.CONF_VISIBLE_SOURCES, default_visible)
+
+        options_schema = vol.Schema(
+            {
+                vol.Optional(CONF_INTERVAL, default=CONF_DEFAULT_INTERVAL): NumberSelector(
+                    NumberSelectorConfig(
+                        min=5,
+                        mode=NumberSelectorMode.BOX,
+                        unit_of_measurement=UnitOfTime.SECONDS,
+                    )
+                ),
+                vol.Optional(
+                    self.CONF_VISIBLE_SOURCES, default=current_visible
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[
+                            SelectOptionDict(value=k, label=v)
+                            for k, v in available_sources.items()
+                        ],
+                        mode=SelectSelectorMode.DROPDOWN,
+                        multiple=True,
+                    )
+                ),
+            }
+        )
+
         if user_input is not None:
-            self._OPTIONS_SCHEMA(user_input)
+            options_schema(user_input)
             return self.async_create_entry(title="", data=user_input)
 
         data_schema = self.add_suggested_values_to_schema(
-            self._OPTIONS_SCHEMA, self.config_entry.options
+            options_schema, self.config_entry.options
         )
 
         return self.async_show_form(
             step_id="init", data_schema=data_schema, errors=errors
         )
+
+    @staticmethod
+    def _safe_model_name(model: str) -> str:
+        return "".join(c if c.isalnum() or c in "._-" else "_" for c in model.lower())
 
 
 def get_serial_by_id(dev_path: str) -> str:

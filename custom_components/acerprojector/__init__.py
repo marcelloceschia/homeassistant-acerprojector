@@ -32,6 +32,7 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [
     Platform.MEDIA_PLAYER,
+    Platform.NUMBER,
     Platform.SELECT,
     Platform.SENSOR,
     Platform.SWITCH,
@@ -96,6 +97,14 @@ class AcerProjectorCoordinator(DataUpdateCoordinator):
     def lamp_hours(self) -> int | None:
         return self.projector.lamp_hours
 
+    @property
+    def volume(self) -> int | None:
+        return self.projector.volume
+
+    @property
+    def eco_mode(self) -> bool | None:
+        return self.projector.eco_mode
+
     @callback
     def _listener(self, command: str, data: Any) -> None:
         self.async_set_updated_data({command: data})
@@ -129,6 +138,12 @@ class AcerProjectorCoordinator(DataUpdateCoordinator):
     async def async_select_video_source(self, source: str) -> bool:
         return await self.projector.select_video_source(source)
 
+    async def async_set_volume_level(self, level: int) -> bool:
+        return await self.projector.set_volume_level(level)
+
+    async def async_set_eco_mode(self, enabled: bool) -> bool:
+        return await self.projector.set_eco_mode(enabled)
+
     async def async_send_ir_command(self, command: str) -> bool:
         return await self.projector.send_ir_command(command)
 
@@ -138,6 +153,7 @@ class AcerProjectorCoordinator(DataUpdateCoordinator):
             "power": self.projector.power_status,
             "source": self.projector.video_source,
             "lamp_hours": self.projector.lamp_hours,
+            "eco_mode": self.projector.eco_mode,
         }
 
 

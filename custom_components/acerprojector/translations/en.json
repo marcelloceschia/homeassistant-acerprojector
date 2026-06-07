@@ -55,12 +55,20 @@
         "name": "Lamp hours"
       }
     },
+    "number": {
+      "volume": {
+        "name": "Volume"
+      }
+    },
     "select": {
       "video_source": {
         "name": "Input source"
       }
     },
     "switch": {
+      "eco_mode": {
+        "name": "Eco mode"
+      },
       "mute": {
         "name": "Mute"
       },

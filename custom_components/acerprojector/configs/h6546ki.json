@@ -70,11 +70,13 @@
     "query_source": "* 0 Src ?",
     "query_lamp_hours": "* 0 Lamp",
     "query_model": "* 0 IR 035",
+    "query_eco_mode": "* 0 IR 052",
     "mute": "* 0 IR 006",
     "freeze": "* 0 IR 007",
     "hide": "* 0 IR 030",
     "eco_mode": "* 0 IR 052",
     "volume_up": "* 0 IR 023",
+    "volume_down": "* 0 IR 024",
     "brightness_up": "* 0 IR 025",
     "contrast_up": "* 0 IR 026"
   },
@@ -84,6 +86,11 @@
     "lamp_hours",
     "mute",
     "freeze",
-    "hide"
-  ]
+    "hide",
+    "volume",
+    "eco_mode"
+  ],
+  "options": {
+    "visible_video_sources": ["hdmi1", "hdmi2", "hdmi3", "vga", "wireless"]
+  }
 }

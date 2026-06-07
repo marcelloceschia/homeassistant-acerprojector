@@ -9,6 +9,7 @@ from homeassistant.components.switch import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -38,6 +39,14 @@ async def async_setup_entry(
     if coordinator.supports_command("hide"):
         entity_descriptions.append(
             SwitchEntityDescription(key="hide", translation_key="hide")
+        )
+    if coordinator.supports_feature("eco_mode"):
+        entity_descriptions.append(
+            SwitchEntityDescription(
+                key="eco_mode",
+                translation_key="eco_mode",
+                entity_category=EntityCategory.CONFIG,
+            )
         )
 
     entities = [
@@ -72,9 +81,14 @@ class AcerProjectorSwitch(CoordinatorEntity, SwitchEntity):
         """Called when switch is added to Home Assistant."""
         await super().async_added_to_hass()
 
-        if self.coordinator.power_status in [POWERSTATUS_POWERINGON, POWERSTATUS_ON]:
+        key = self.entity_description.key
+        if self.coordinator.data and (new_state := self.coordinator.data.get(key)) is not None:
+            self._attr_is_on = bool(new_state)
+            self._attr_available = True
+        elif self.coordinator.power_status in [POWERSTATUS_POWERINGON, POWERSTATUS_ON]:
             self._attr_available = True
         else:
+            _LOGGER.debug("%s is not available", key)
             self._attr_available = False
 
         self.async_write_ha_state()
@@ -89,7 +103,14 @@ class AcerProjectorSwitch(CoordinatorEntity, SwitchEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if self.coordinator.power_status in [POWERSTATUS_POWERINGON, POWERSTATUS_ON]:
+        key = self.entity_description.key
+        if key in self.coordinator.data:
+            self._attr_is_on = bool(self.coordinator.data.get(key))
+            self._attr_available = True
+        elif self.coordinator.power_status in [
+            POWERSTATUS_POWERINGON,
+            POWERSTATUS_ON,
+        ]:
             self._attr_available = True
         else:
             self._attr_available = False
@@ -98,14 +119,26 @@ class AcerProjectorSwitch(CoordinatorEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn the entity on."""
-        _LOGGER.debug("Sending %s", self.entity_description.key)
-        if await self.coordinator.async_send_ir_command(self.entity_description.key):
+        _LOGGER.debug("Turning on %s", self.name)
+        if self.entity_description.key == "eco_mode":
+            success = await self.coordinator.async_set_eco_mode(True)
+        else:
+            success = await self.coordinator.async_send_ir_command(self.entity_description.key)
+        if success:
             self._attr_is_on = True
             self.async_write_ha_state()
+        else:
+            _LOGGER.error("Failed to switch on %s", self.name)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn the entity off."""
-        _LOGGER.debug("Sending %s", self.entity_description.key)
-        if await self.coordinator.async_send_ir_command(self.entity_description.key):
+        _LOGGER.debug("Turning off %s", self.name)
+        if self.entity_description.key == "eco_mode":
+            success = await self.coordinator.async_set_eco_mode(False)
+        else:
+            success = await self.coordinator.async_send_ir_command(self.entity_description.key)
+        if success:
             self._attr_is_on = False
             self.async_write_ha_state()
+        else:
+            _LOGGER.error("Failed to switch off %s", self.name)

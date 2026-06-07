@@ -25,10 +25,19 @@ async def async_setup_entry(
     if not coordinator.supports_feature("video_source"):
         return
 
+    visible_sources = config_entry.options.get(
+        "visible_video_sources", list(coordinator.video_source_names.keys())
+    )
+    available_options = [
+        key
+        for key in coordinator.video_source_names.keys()
+        if key in visible_sources
+    ]
+
     entity_description = SelectEntityDescription(
         key="video_source",
         translation_key="video_source",
-        options=list(coordinator.video_source_names.keys()),
+        options=available_options,
     )
 
     async_add_entities(
