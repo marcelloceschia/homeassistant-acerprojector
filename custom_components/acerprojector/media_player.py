@@ -40,12 +40,17 @@ class AcerProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         MediaPlayerEntityFeature.TURN_ON
         | MediaPlayerEntityFeature.TURN_OFF
         | MediaPlayerEntityFeature.SELECT_SOURCE
+        | MediaPlayerEntityFeature.VOLUME_SET
+        | MediaPlayerEntityFeature.VOLUME_STEP
+        | MediaPlayerEntityFeature.VOLUME_MUTE
     )
 
     _attr_available = False
     _attr_state = None
     _attr_source_list: list[str] | None = None
     _attr_source = None
+    _attr_is_volume_muted = None
+    _attr_volume_level = None
 
     def __init__(
         self, coordinator: AcerProjectorCoordinator, config_entry_id: str
@@ -66,6 +71,8 @@ class AcerProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         elif self.coordinator.power_status in [POWERSTATUS_POWERINGON, POWERSTATUS_ON]:
             self._attr_state = MediaPlayerState.ON
             self._attr_source = self.coordinator.video_source
+            if self.coordinator.volume is not None:
+                self._attr_volume_level = self.coordinator.volume / 20.0
             self._attr_available = True
         elif self.coordinator.power_status == POWERSTATUS_POWERINGOFF:
             self._attr_state = MediaPlayerState.OFF
@@ -101,6 +108,9 @@ class AcerProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         if "source" in self.coordinator.data:
             self._attr_source = self.coordinator.data.get("source")
 
+        if self.coordinator.volume is not None:
+            self._attr_volume_level = self.coordinator.volume / 20.0
+
         self.async_write_ha_state()
 
     async def async_turn_on(self) -> None:
@@ -118,4 +128,39 @@ class AcerProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         """Set the input video source."""
         if await self.coordinator.async_select_video_source(source):
             self._attr_source = source
+            self.async_write_ha_state()
+
+    async def async_set_volume_level(self, volume: float) -> None:
+        """Set volume level, range 0..1."""
+        if self.coordinator.power_status != POWERSTATUS_ON:
+            return
+        level = int(volume * 20.0)
+        if await self.coordinator.async_set_volume_level(level):
+            self._attr_volume_level = self.coordinator.volume / 20.0
+            self.async_write_ha_state()
+
+    async def async_volume_up(self) -> None:
+        """Volume up."""
+        if self.coordinator.power_status != POWERSTATUS_ON:
+            return
+        current = self.coordinator.volume or 10
+        if await self.coordinator.async_set_volume_level(min(20, current + 1)):
+            self._attr_volume_level = self.coordinator.volume / 20.0
+            self.async_write_ha_state()
+
+    async def async_volume_down(self) -> None:
+        """Volume down."""
+        if self.coordinator.power_status != POWERSTATUS_ON:
+            return
+        current = self.coordinator.volume or 10
+        if await self.coordinator.async_set_volume_level(max(0, current - 1)):
+            self._attr_volume_level = self.coordinator.volume / 20.0
+            self.async_write_ha_state()
+
+    async def async_mute_volume(self, mute: bool) -> None:
+        """Mute/unmute volume."""
+        if self.coordinator.power_status != POWERSTATUS_ON:
+            return
+        if await self.coordinator.async_send_ir_command("mute"):
+            self._attr_is_volume_muted = mute
             self.async_write_ha_state()
