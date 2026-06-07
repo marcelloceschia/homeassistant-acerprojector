@@ -1,6 +1,8 @@
 """The Acer Projector integration."""
 
 import logging
+import os
+import shutil
 from typing import Any
 
 import voluptuous as vol
@@ -175,8 +177,39 @@ class AcerProjectorCoordinator(DataUpdateCoordinator):
         }
 
 
+async def _async_setup_icons(hass: HomeAssistant) -> None:
+    """Copy icon assets to www folder so they are served by HA."""
+    try:
+        # Determine source dir (integration assets) and target dir (HA www)
+        integration_dir = os.path.dirname(os.path.abspath(__file__))
+        source_dir = os.path.join(integration_dir, "assets")
+        target_dir = os.path.join(hass.config.config_dir, "www", "acerprojector")
+
+        if not os.path.isdir(source_dir):
+            _LOGGER.debug("No assets dir found at %s, skipping icon setup", source_dir)
+            return
+
+        os.makedirs(target_dir, exist_ok=True)
+
+        copied = 0
+        for fname in os.listdir(source_dir):
+            if fname.endswith(".svg"):
+                src = os.path.join(source_dir, fname)
+                dst = os.path.join(target_dir, fname)
+                shutil.copy2(src, dst)
+                copied += 1
+
+        if copied:
+            _LOGGER.info("Copied %d icon(s) to %s", copied, target_dir)
+    except Exception as exc:
+        _LOGGER.warning("Failed to copy Acer projector icons: %s", exc)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Acer Projector from a config entry."""
+    # Ensure icons are available in www for the media player card
+    await _async_setup_icons(hass)
+
     projector: AcerProjector | None = None
 
     model = entry.data.get(CONF_MODEL)
