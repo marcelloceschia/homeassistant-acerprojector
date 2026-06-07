@@ -1,0 +1,66 @@
+{
+  "model": "X1261",
+  "manufacturer": "Acer",
+  "baud_rate": 9600,
+  "poweron_time": 25,
+  "poweroff_time": 5,
+  "video_sources": {
+    "vga1": "* 0 IR 015",
+    "vga2": "* 0 IR 077",
+    "dvi": "* 0 IR 016",
+    "svideo": "* 0 IR 018",
+    "composite": "* 0 IR 019",
+    "component": "* 0 IR 020"
+  },
+  "video_source_names": {
+    "vga1": "VGA 1",
+    "vga2": "VGA 2",
+    "dvi": "DVI",
+    "svideo": "S-Video",
+    "composite": "Composite",
+    "component": "Component"
+  },
+  "video_source_values": {
+    "0": "vga1",
+    "1": "vga2",
+    "2": "dvi",
+    "3": "svideo",
+    "4": "composite",
+    "5": "component",
+    "vga1": "vga1",
+    "vga2": "vga2",
+    "dvi": "dvi",
+    "svideo": "svideo",
+    "composite": "composite",
+    "component": "component"
+  },
+  "model_aliases": {},
+  "commands": {
+    "power_on": "* 0 IR 001",
+    "power_off": "* 0 IR 002",
+    "query_power": "* 0 Lamp ?",
+    "query_source": "* 0 Src ?",
+    "query_lamp_hours": "* 0 Lamp",
+    "query_model": "* 0 IR 035",
+    "mute": "* 0 IR 006",
+    "freeze": "* 0 IR 007",
+    "hide": "* 0 IR 030",
+    "eco_mode": "* 0 IR 052",
+    "volume_up": "* 0 IR 023",
+    "volume_down": "* 0 IR 024",
+    "brightness_up": "* 0 IR 025",
+    "contrast_up": "* 0 IR 026"
+  },
+  "supported_features": [
+    "power",
+    "video_source",
+    "lamp_hours",
+    "mute",
+    "freeze",
+    "hide"
+  ],
+  "options": {
+    "visible_video_sources": ["vga1", "vga2", "dvi", "composite"]
+  },
+  "_note": "UNTESTED - Based on X1261 RS232 documentation. Source mappings estimated."
+}

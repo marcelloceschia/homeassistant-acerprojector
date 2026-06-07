@@ -53,9 +53,9 @@ class AcerProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
     _attr_volume_level = None
 
     _SOURCE_IMAGES = {
-        "hdmi1": "/local/acerprojector/hdmi1.svg",
-        "hdmi2": "/local/acerprojector/hdmi2.svg",
-        "hdmi3": "/local/acerprojector/hdmi3.svg",
+        "hdmi1": "/local/acerprojector/hdmi.svg",
+        "hdmi2": "/local/acerprojector/hdmi.svg",
+        "hdmi3": "/local/acerprojector/hdmi.svg",
         "vga": "/local/acerprojector/vga.svg",
         "dvi": "/local/acerprojector/monitor.svg",
         "displayport": "/local/acerprojector/monitor.svg",

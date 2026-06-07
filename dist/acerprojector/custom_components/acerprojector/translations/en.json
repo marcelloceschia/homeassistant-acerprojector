@@ -1,0 +1,83 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Acer Projector",
+        "description": "Choose how to connect to your Acer projector.",
+        "menu_options": {
+          "setup_serial": "Serial connection",
+          "setup_tcp": "TCP connection (e.g. USR-TCP232-410S)"
+        }
+      },
+      "setup_serial": {
+        "title": "Serial connection",
+        "data": {
+          "serial_port": "Serial port",
+          "baud_rate": "Baud rate",
+          "model": "Model (optional)"
+        }
+      },
+      "setup_tcp": {
+        "title": "TCP connection",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "model": "Model (optional)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect, please check your settings.",
+      "nonexisting_serial_port": "The selected serial port does not exist."
+    },
+    "abort": {
+      "already_configured": "Device is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Acer Projector options",
+        "data": {
+          "interval": "Polling interval (seconds)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "media_player": {
+      "projector": {
+        "name": "Projector"
+      }
+    },
+    "sensor": {
+      "lamp_hours": {
+        "name": "Lamp hours"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volume"
+      }
+    },
+    "select": {
+      "video_source": {
+        "name": "Input source"
+      }
+    },
+    "switch": {
+      "eco_mode": {
+        "name": "Eco mode"
+      },
+      "mute": {
+        "name": "Mute"
+      },
+      "freeze": {
+        "name": "Freeze"
+      },
+      "hide": {
+        "name": "Hide"
+      }
+    }
+  }
+}

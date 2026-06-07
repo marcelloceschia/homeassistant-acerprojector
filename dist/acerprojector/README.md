@@ -76,9 +76,7 @@ The integration automatically copies SVG icons to your Home Assistant `www/acerp
 
 | Source | Icon file |
 |--------|-----------|
-| HDMI1 | `hdmi1.svg` |
-| HDMI2 | `hdmi2.svg` |
-| HDMI3 | `hdmi3.svg` |
+| HDMI1/2/3 | `hdmi.svg` |
 | VGA | `vga.svg` |
 | DVI / DisplayPort | `monitor.svg` |
 | Wireless | `wireless.svg` |

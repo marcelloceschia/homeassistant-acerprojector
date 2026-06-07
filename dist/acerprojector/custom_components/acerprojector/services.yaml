@@ -1,0 +1,17 @@
+send_raw:
+  name: Send raw command
+  description: Send a raw RS232 command to the Acer projector.
+  fields:
+    device_id:
+      name: Device ID
+      description: The Acer projector device ID.
+      required: true
+      selector:
+        device:
+          integration: acerprojector
+    command:
+      name: Command
+      description: The raw command string to send (e.g., "* 0 Lamp ?").
+      required: true
+      selector:
+        text:
