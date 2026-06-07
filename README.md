@@ -6,7 +6,7 @@ Inspired by [homeassistant-benqprojector](https://github.com/rrooggiieerr/homeas
 
 ## Features
 
-- Media Player entity (power, input source)
+- Media Player entity (power, input source, volume control)
 - Select entity (input source dropdown)
 - Number entity (volume control 0-20)
 - Sensor entity (lamp hours)
@@ -16,6 +16,7 @@ Inspired by [homeassistant-benqprojector](https://github.com/rrooggiieerr/homeas
 - Multi-model support via JSON configuration files
 - Service to send raw RS232 commands
 - Options flow to configure visible video sources
+- **Source icons** displayed in the media player card
 
 ## Supported models
 
@@ -68,6 +69,29 @@ The model can be auto-detected or selected manually.
 After setup, go to **Settings → Devices & Services → Acer Projector → Configure** to:
 - Set polling interval
 - Choose which video sources appear in the dropdown
+
+## Source Icons
+
+The integration automatically copies SVG icons to your Home Assistant `www/acerprojector/` folder on first setup. These icons are shown in the media player card depending on the active video source.
+
+| Source | Icon file |
+|--------|-----------|
+| HDMI1/2/3 | `hdmi.svg` |
+| VGA | `vga.svg` |
+| DVI / DisplayPort | `monitor.svg` |
+| Wireless | `wireless.svg` |
+| USB Display | `usb.svg` |
+| LAN / WiFi | `lan.svg` |
+| Composite / S-Video / Component | `av.svg` |
+| Media | `media.svg` |
+| HDBaseT | `ethernet.svg` |
+| (default) | `projector.svg` |
+
+### Custom Icons
+
+You can replace any icon by placing your own SVG file in `config/www/acerprojector/`. The integration **only copies missing icons** — existing files are never overwritten, so your custom icons stay intact.
+
+To restore the default icons, delete the files from `config/www/acerprojector/` and restart Home Assistant.
 
 ## Service
 

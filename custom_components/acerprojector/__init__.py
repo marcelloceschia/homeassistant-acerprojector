@@ -180,7 +180,6 @@ class AcerProjectorCoordinator(DataUpdateCoordinator):
 async def _async_setup_icons(hass: HomeAssistant) -> None:
     """Copy icon assets to www folder so they are served by HA."""
     try:
-        # Determine source dir (integration assets) and target dir (HA www)
         integration_dir = os.path.dirname(os.path.abspath(__file__))
         source_dir = os.path.join(integration_dir, "assets")
         target_dir = os.path.join(hass.config.config_dir, "www", "acerprojector")
@@ -192,15 +191,21 @@ async def _async_setup_icons(hass: HomeAssistant) -> None:
         os.makedirs(target_dir, exist_ok=True)
 
         copied = 0
+        skipped = 0
         for fname in os.listdir(source_dir):
             if fname.endswith(".svg"):
                 src = os.path.join(source_dir, fname)
                 dst = os.path.join(target_dir, fname)
+                if os.path.exists(dst):
+                    skipped += 1
+                    continue
                 shutil.copy2(src, dst)
                 copied += 1
 
         if copied:
-            _LOGGER.info("Copied %d icon(s) to %s", copied, target_dir)
+            _LOGGER.info("Copied %d new icon(s) to %s", copied, target_dir)
+        if skipped:
+            _LOGGER.debug("Skipped %d existing icon(s) in %s", skipped, target_dir)
     except Exception as exc:
         _LOGGER.warning("Failed to copy Acer projector icons: %s", exc)
 
