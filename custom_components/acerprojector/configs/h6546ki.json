@@ -7,20 +7,58 @@
   "video_sources": {
     "hdmi1": "* 0 IR 050",
     "hdmi2": "* 0 IR 068",
-    "vga": "* 0 IR 015"
+    "hdmi3": "* 0 IR 069",
+    "vga": "* 0 IR 015",
+    "dvi": "* 0 IR 016",
+    "composite": "* 0 IR 019",
+    "svideo": "* 0 IR 018",
+    "displayport": "* 0 IR 074",
+    "hdbaset": "* 0 IR 070",
+    "wireless": "* 0 IR 079",
+    "usbdisplay": "* 0 IR 076",
+    "media": "* 0 IR 075",
+    "lanwifi": "* 0 IR 072"
   },
   "video_source_names": {
     "hdmi1": "HDMI 1",
     "hdmi2": "HDMI 2",
-    "vga": "VGA"
+    "hdmi3": "HDMI 3",
+    "vga": "VGA",
+    "dvi": "DVI",
+    "composite": "Composite",
+    "svideo": "S-Video",
+    "displayport": "DisplayPort",
+    "hdbaset": "HDBaseT",
+    "wireless": "Wireless",
+    "usbdisplay": "USB Display",
+    "media": "Media",
+    "lanwifi": "LAN/WiFi"
   },
   "video_source_values": {
     "0": "hdmi1",
     "1": "hdmi2",
     "2": "vga",
+    "3": "dvi",
+    "4": "composite",
+    "5": "svideo",
+    "6": "displayport",
+    "7": "hdbaset",
     "8": "hdmi1",
     "9": "hdmi2",
-    "vga": "vga"
+    "10": "wireless",
+    "11": "usbdisplay",
+    "12": "media",
+    "13": "lanwifi",
+    "vga": "vga",
+    "dvi": "dvi",
+    "composite": "composite",
+    "svideo": "svideo",
+    "displayport": "displayport",
+    "hdbaset": "hdbaset",
+    "wireless": "wireless",
+    "usbdisplay": "usbdisplay",
+    "media": "media",
+    "lanwifi": "lanwifi"
   },
   "model_aliases": {
     "Model Acer 1080P PJ": "h6546ki"

@@ -55,6 +55,11 @@
         "name": "Lamp hours"
       }
     },
+    "select": {
+      "video_source": {
+        "name": "Input source"
+      }
+    },
     "switch": {
       "mute": {
         "name": "Mute"

@@ -32,6 +32,7 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [
     Platform.MEDIA_PLAYER,
+    Platform.SELECT,
     Platform.SENSOR,
     Platform.SWITCH,
 ]

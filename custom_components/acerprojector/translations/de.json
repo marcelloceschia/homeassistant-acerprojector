@@ -55,6 +55,11 @@
         "name": "Lampenstunden"
       }
     },
+    "select": {
+      "video_source": {
+        "name": "Eingangsquelle"
+      }
+    },
     "switch": {
       "mute": {
         "name": "Stumm"
