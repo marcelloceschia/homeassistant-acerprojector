@@ -128,7 +128,10 @@ class AcerProjectorCoordinator(DataUpdateCoordinator):
     def async_add_listener(
         self, update_callback: CALLBACK_TYPE, context: Any = None
     ) -> Any:
-        self.projector.add_listener(update_callback)
+        # Wrap HA's no-arg callback to match projector's (command, data) signature
+        def _wrapper(command: str, data: Any) -> None:
+            update_callback()
+        self.projector.add_listener(_wrapper)
         return super().async_add_listener(update_callback, context)
 
     def supports_feature(self, feature: str) -> bool:
