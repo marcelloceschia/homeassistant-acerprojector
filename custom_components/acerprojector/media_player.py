@@ -52,6 +52,18 @@ class AcerProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
     _attr_is_volume_muted = None
     _attr_volume_level = None
 
+    _SOURCE_IMAGES = {
+        "hdmi1": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/HDMI_logo.svg/120px-HDMI_logo.svg.png",
+        "hdmi2": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/HDMI_logo.svg/120px-HDMI_logo.svg.png",
+        "hdmi3": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/HDMI_logo.svg/120px-HDMI_logo.svg.png",
+        "vga": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/VGA_port.svg/120px-VGA_port.svg.png",
+        "dvi": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/DVI_Connector_Types.svg/120px-DVI_Connector_Types.svg.png",
+        "displayport": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/DisplayPort_logo.svg/120px-DisplayPort_logo.svg.png",
+        "wireless": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Wi-Fi_logo.svg/120px-Wi-Fi_logo.svg.png",
+        "usbdisplay": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/USB_Icon.svg/120px-USB_Icon.svg.png",
+        "lanwifi": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Wi-Fi_logo.svg/120px-Wi-Fi_logo.svg.png",
+    }
+
     def __init__(
         self, coordinator: AcerProjectorCoordinator, config_entry_id: str
     ) -> None:
@@ -59,6 +71,13 @@ class AcerProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         super().__init__(coordinator)
         self._attr_device_info = coordinator.device_info
         self._attr_unique_id = f"{config_entry_id}-projector"
+
+    @property
+    def media_image_url(self) -> str | None:
+        """Return the image URL for the current source."""
+        if self.coordinator.video_source:
+            return self._SOURCE_IMAGES.get(self.coordinator.video_source)
+        return None
 
     async def async_added_to_hass(self) -> None:
         """Called when media player is added to Home Assistant."""
