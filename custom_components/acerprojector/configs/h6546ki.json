@@ -1,0 +1,40 @@
+{
+  "model": "H6546Ki",
+  "manufacturer": "Acer",
+  "baud_rate": 9600,
+  "poweron_time": 25,
+  "poweroff_time": 5,
+  "video_sources": {
+    "hdmi1": "* 0 IR 050",
+    "hdmi2": "* 0 IR 068",
+    "vga": "* 0 IR 015"
+  },
+  "video_source_names": {
+    "hdmi1": "HDMI 1",
+    "hdmi2": "HDMI 2",
+    "vga": "VGA"
+  },
+  "commands": {
+    "power_on": "* 0 IR 001",
+    "power_off": "* 0 IR 002",
+    "query_power": "* 0 Lamp ?",
+    "query_source": "* 0 Src ?",
+    "query_lamp_hours": "* 0 Lamp",
+    "query_model": "* 0 IR 035",
+    "mute": "* 0 IR 006",
+    "freeze": "* 0 IR 007",
+    "hide": "* 0 IR 030",
+    "eco_mode": "* 0 IR 052",
+    "volume_up": "* 0 IR 023",
+    "brightness_up": "* 0 IR 025",
+    "contrast_up": "* 0 IR 026"
+  },
+  "supported_features": [
+    "power",
+    "video_source",
+    "lamp_hours",
+    "mute",
+    "freeze",
+    "hide"
+  ]
+}

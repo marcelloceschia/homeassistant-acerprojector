@@ -1,0 +1,70 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Acer Beamer",
+        "description": "Wähle die Verbindungsart zu deinem Acer Beamer.",
+        "menu_options": {
+          "setup_serial": "Serielle Verbindung",
+          "setup_tcp": "TCP-Verbindung (z.B. USR-TCP232-410S)"
+        }
+      },
+      "setup_serial": {
+        "title": "Serielle Verbindung",
+        "data": {
+          "serial_port": "Serieller Port",
+          "baud_rate": "Baudrate",
+          "model": "Modell (optional)"
+        }
+      },
+      "setup_tcp": {
+        "title": "TCP-Verbindung",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "model": "Modell (optional)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung fehlgeschlagen, bitte Einstellungen prüfen.",
+      "nonexisting_serial_port": "Der gewählte serielle Port existiert nicht."
+    },
+    "abort": {
+      "already_configured": "Gerät ist bereits konfiguriert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Acer Beamer Optionen",
+        "data": {
+          "interval": "Abfrageintervall (Sekunden)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "media_player": {
+      "projector": {
+        "name": "Beamer"
+      }
+    },
+    "sensor": {
+      "lamp_hours": {
+        "name": "Lampenstunden"
+      }
+    },
+    "switch": {
+      "mute": {
+        "name": "Stumm"
+      },
+      "freeze": {
+        "name": "Einfrieren"
+      },
+      "hide": {
+        "name": "Ausblenden"
+      }
+    }
+  }
+}
