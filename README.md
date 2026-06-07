@@ -7,25 +7,47 @@ Inspired by [homeassistant-benqprojector](https://github.com/rrooggiieerr/homeas
 ## Features
 
 - Media Player entity (power, input source)
+- Select entity (input source dropdown)
+- Number entity (volume control 0-20)
 - Sensor entity (lamp hours)
-- Switch entities (mute, freeze, hide)
+- Switch entities (mute, freeze, hide, eco mode)
 - Config Flow setup
 - TCP and serial connection support
 - Multi-model support via JSON configuration files
 - Service to send raw RS232 commands
+- Options flow to configure visible video sources
 
 ## Supported models
 
-- Acer H6546Ki
-- Generic Acer (default fallback)
+| Model | Status | Video Sources |
+|-------|--------|---------------|
+| **H6546Ki** | ✅ Tested | HDMI1/2/3, VGA, DVI, Composite, S-Video, DisplayPort, HDBaseT, Wireless, USB Display, Media, LAN/WiFi |
+| H5382BD | ⚠️ Untested | HDMI1/2, VGA, Composite, Wireless |
+| P6200S | ⚠️ Untested | HDMI1/2, VGA, DVI, Composite, S-Video, Component, DisplayPort, HDBaseT |
+| UL6200 | ⚠️ Untested | HDMI1/2, VGA, DVI, Composite, S-Video, DisplayPort |
+| X1261 | ⚠️ Untested | VGA1/2, DVI, S-Video, Composite, Component |
+| default | ⚠️ Fallback | All known Acer sources |
 
 More models can be added by creating a JSON file under `custom_components/acerprojector/configs/`.
 
 ## Installation
 
-### HACS
+### HACS (Recommended)
 
-Add this repository as a custom repository in HACS and install it.
+1. Open HACS in Home Assistant
+2. Go to **Integrations → Custom repositories**
+3. Add `https://github.com/marcelloceschia/homeassistant-acerprojector`
+4. Install **Acer Projector**
+5. Restart Home Assistant
+
+### Latest Developer Version
+
+If you want the latest unreleased changes:
+
+1. In HACS, open the Acer Projector integration
+2. Click the three dots (⋮) → **Download again**
+3. Enable **"Show beta versions"**
+4. Select `master` or the latest commit
 
 ### Manual
 
@@ -40,6 +62,12 @@ Choose either:
 - **Serial connection** – select the serial port and baud rate
 
 The model can be auto-detected or selected manually.
+
+### Options
+
+After setup, go to **Settings → Devices & Services → Acer Projector → Configure** to:
+- Set polling interval
+- Choose which video sources appear in the dropdown
 
 ## Service
 
@@ -71,3 +99,9 @@ Examples:
 - Query source: `* 0 Src ?`
 
 Default serial settings: **9600 baud, 8 data bits, no parity, 1 stop bit**.
+
+## Releases
+
+| Version | Date | Notes |
+|---------|------|-------|
+| [v0.0.1](https://github.com/marcelloceschia/homeassistant-acerprojector/releases/tag/v0.0.1) | 2025-06-07 | Initial release |
