@@ -18,11 +18,13 @@ from .const import (
     CONF_BAUD_RATE,
     CONF_CONNECTION_TYPE,
     CONF_DEFAULT_INTERVAL,
+    CONF_DEFAULT_VOLUME,
     CONF_INTERVAL,
     CONF_MODEL,
     CONF_SERIAL_PORT,
     CONF_TYPE_SERIAL,
     CONF_TYPE_TCP,
+    CONF_VOLUME,
     DOMAIN,
     POWERSTATUS_ON,
 )
@@ -54,8 +56,14 @@ class AcerProjectorCoordinator(DataUpdateCoordinator):
     unique_id: str | None = None
     model: str | None = None
     device_info: DeviceInfo | None = None
+    config_entry: ConfigEntry | None = None
 
-    def __init__(self, hass: HomeAssistant | None, projector: AcerProjector) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant | None,
+        projector: AcerProjector,
+        config_entry: ConfigEntry | None = None,
+    ) -> None:
         """Initialize Acer Projector Data Update Coordinator."""
         super().__init__(
             hass,
@@ -64,6 +72,7 @@ class AcerProjectorCoordinator(DataUpdateCoordinator):
             update_interval=None,
         )
 
+        self.config_entry = config_entry
         self.projector = projector
         self.projector.add_listener(self._listener)
 
@@ -139,7 +148,16 @@ class AcerProjectorCoordinator(DataUpdateCoordinator):
         return await self.projector.select_video_source(source)
 
     async def async_set_volume_level(self, level: int) -> bool:
-        return await self.projector.set_volume_level(level)
+        if await self.projector.set_volume_level(level):
+            # Persist the new volume in config entry options
+            if self.hass and self.config_entry:
+                new_options = dict(self.config_entry.options)
+                new_options[CONF_VOLUME] = self.projector.volume
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry, options=new_options
+                )
+            return True
+        return False
 
     async def async_set_eco_mode(self, enabled: bool) -> bool:
         return await self.projector.set_eco_mode(enabled)
@@ -191,7 +209,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     _LOGGER.info("Device %s is available", projector.unique_id)
 
-    coordinator = AcerProjectorCoordinator(hass, projector)
+    # Restore last known volume from options, default to 3
+    projector.volume = entry.options.get(CONF_VOLUME, CONF_DEFAULT_VOLUME)
+
+    coordinator = AcerProjectorCoordinator(hass, projector, config_entry=entry)
 
     entry.runtime_data = coordinator
 
