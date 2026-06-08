@@ -141,12 +141,14 @@ class AcerProjectorMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         """Turn projector on."""
         if await self.coordinator.async_turn_on():
             self._attr_state = MediaPlayerState.ON
+            self._attr_available = True
+            self.async_write_ha_state()
 
     async def async_turn_off(self) -> None:
         """Turn projector off."""
         if await self.coordinator.async_turn_off():
             self._attr_state = MediaPlayerState.OFF
-            self._attr_available = False
+            self.async_write_ha_state()
 
     async def async_select_source(self, source: str) -> None:
         """Set the input video source."""
