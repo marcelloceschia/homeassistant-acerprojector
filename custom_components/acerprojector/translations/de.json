@@ -66,6 +66,9 @@
       }
     },
     "switch": {
+      "power": {
+        "name": "Ein/Aus"
+      },
       "eco_mode": {
         "name": "Eco-Modus"
       },
